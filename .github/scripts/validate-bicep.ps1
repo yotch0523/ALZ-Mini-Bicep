@@ -3,7 +3,7 @@ Where-Object { $_.FullName -notmatch '\/CRML\/' -and $_.FullName -notmatch '\/sa
 ForEach-Object {
   Write-Information "==> Attempting Bicep Validate For File: $_" -InformationAction Continue
   $bicepTemplate = $_.FullName
-  $parametersDirectory = "$_.DirectoryName\parameters"
+  $parametersDirectory = "$($_.DirectoryName)\parameters"
   Get-ChildItem -Path $parametersDirectory -Recurse -Filter '*.bicepparam' -Exclude *.sample.*.bicepparam |
   ForEach-Object {
     Write-Information "==> Attempting Bicep Deploy For File: $bicepTemplate | Paramters: $_" -InformationAction Continue
