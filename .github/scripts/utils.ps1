@@ -29,7 +29,7 @@ function Deploy-BicepTemplate {
     Write-Information "==> Attempting Bicep Deploy For File: $_" -InformationAction Continue
     $bicepTemplate = $_.FullName
     $parametersDirectory = "$($_.DirectoryName)\parameters"
-    Get-ChildItem -Path $parametersDirectory -Recurse -Filter '*.bicepparam' -Exclude *.sample.*.bicepparam |
+    Get-ChildItem -Path $parametersDirectory -Recurse -Filter '*.bicepparam' -Exclude '*.sample.*.bicepparam' |
     ForEach-Object {
       Write-Information "==> Attempting Bicep Deploy For File: $bicepTemplate | Paramters: $_" -InformationAction Continue
       $bicepParameters = $_.FullName
