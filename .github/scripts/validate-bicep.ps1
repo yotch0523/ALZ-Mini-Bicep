@@ -1,28 +1,3 @@
-Get-ChildItem -Recurse -Filter '*.bicep' -Exclude '.\infra-as-code\bicep\CRML\**\*.bicep','callModuleFromACR.example.bicep','orchHubSpoke.bicep', '' |
-Where-Object { $_.FullName -notmatch '\/CRML\/' -and $_.FullName -notmatch '\/samples\/' } |
-ForEach-Object {
-  Write-Information "==> Attempting Bicep Validate For File: $_" -InformationAction Continue
-  $bicepTemplate = $_.FullName
-  $parametersDirectory = "$($_.DirectoryName)\parameters"
-  Get-ChildItem -Path $parametersDirectory -Recurse -Filter '*.bicepparam' -Exclude *.sample.*.bicepparam |
-  ForEach-Object {
-    Write-Information "==> Attempting Bicep Deploy For File: $bicepTemplate | Paramters: $_" -InformationAction Continue
-    $bicepParameters = $_.FullName
-    $bicepOutput = @()
-    $bicepOutput = az deployment sub validate --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
-    if ($LastExitCode -ne 0)
-    {
-      foreach ($item in $bicepOutput) {
-        $output += "$($item) `r`n"
-      }
-    }
-    Else
-    {
-      Write-Host "Bicep Validate Successful for File: $bicepTemplate"
-    }
+. "$PSScriptRoot\utils.ps1"
 
-    if ($output.length -gt 0) {
-      throw $output
-    }
-  }
-}
+Deploy-BicepTemplate -ValidateMode $true
