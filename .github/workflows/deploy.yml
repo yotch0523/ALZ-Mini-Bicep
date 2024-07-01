@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/deploy.yml"
+      - ".github/scripts/*"
       - "**.bicep"
       - "ps-rule.yaml"
       - ".ps-rule/*"

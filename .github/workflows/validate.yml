@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "**.bicep"
+      - ".github/scripts/validation-bicep.ps1"
       - "ps-rule.yaml"
       - ".ps-rule/*"
       - "**/bicepconfig.json"
