@@ -356,3 +356,6 @@ MigrationBackup/
 
 # custom ignore
 config/custom-parameters/**/*.bicepparam
+# ignore .bicepparam files except for .sample.all.bicepparam or .sample.min.bicepparam
+*.bicepparam
+!*.sample.*.bicepparam
