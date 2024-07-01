@@ -9,11 +9,10 @@ on:
       - ".github/scripts/*"
       - "**.bicep"
       - "**.bicepparam"
+      - "!*.sample.*.bicepparam"
       - "ps-rule.yaml"
       - ".ps-rule/*"
       - "**/bicepconfig.json"
-    paths-ignore:
-      - "*.sample.*.bicepparam"
 
 permissions:
   id-token: write
