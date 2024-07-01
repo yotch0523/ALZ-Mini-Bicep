@@ -1,5 +1,5 @@
 Get-ChildItem -Recurse -Filter '*.bicep' -Exclude '.\infra-as-code\bicep\CRML\**\*.bicep','callModuleFromACR.example.bicep','orchHubSpoke.bicep', '' |
-Where-Object { $_.FullName -notmatch '\/CRML\/' } |
+Where-Object { $_.FullName -notmatch '\/CRML\/' -and $_.FullName -notmatch '\/samples\/' } |
 ForEach-Object {
   Write-Information "==> Attempting Bicep Validate For File: $_" -InformationAction Continue
   $bicepTemplate = $_.FullName
