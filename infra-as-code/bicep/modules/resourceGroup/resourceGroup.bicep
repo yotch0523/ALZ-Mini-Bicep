@@ -14,6 +14,9 @@ type lockType = {
   notes: string?
 }
 
+@sys.description('Project prefix represents, for example, customer name, project name, organization name, or so on.')
+param parProjectPrefix string = 'alz'
+
 @sys.description('Azure Region where Resource Group will be created.')
 param parLocation string
 
@@ -38,7 +41,7 @@ param parTags object = {}
 param parTelemetryOptOut bool = false
 
 // Customer Usage Attribution Id
-var varCuaid = 'b6718c54-b49e-4748-a466-88e3d7c789c8'
+var varCuaid = uniqueString(parProjectPrefix)
 
 resource resResourceGroup 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   location: parLocation
