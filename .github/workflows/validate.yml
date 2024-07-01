@@ -6,10 +6,13 @@ on:
       - main
     paths:
       - "**.bicep"
+      - "**.bicepparam"
       - ".github/scripts/validation-bicep.ps1"
       - "ps-rule.yaml"
       - ".ps-rule/*"
       - "**/bicepconfig.json"
+    paths-ignore:
+      - "*.sample.*.bicepparam"
   workflow_dispatch: {}
 
 permissions:

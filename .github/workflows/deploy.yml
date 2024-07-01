@@ -8,9 +8,12 @@ on:
       - ".github/workflows/deploy.yml"
       - ".github/scripts/*"
       - "**.bicep"
+      - "**.bicepparam"
       - "ps-rule.yaml"
       - ".ps-rule/*"
       - "**/bicepconfig.json"
+    paths-ignore:
+      - "*.sample.*.bicepparam"
 
 permissions:
   id-token: write
