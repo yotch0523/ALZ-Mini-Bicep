@@ -65,7 +65,7 @@ jobs:
             Get-ChildItem -Path $parametersDirectory -Recurse -Filter '*.bicepparam' -Exclude *.sample.*.bicepparam | ForEach-Object {
               Write-Information "==> Attempting Bicep Deploy For File: $bicepTemplate | Paramters: $_" -InformationAction Continue
               $bicepParameters = $_.FullName
-              $bicepOutput = az deployment sub --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
+              $bicepOutput = az deployment sub validate --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
               if ($LastExitCode -ne 0)
               {
                 foreach ($item in $bicepOutput) {

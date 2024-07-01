@@ -33,7 +33,7 @@ jobs:
         run: |
           # From https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#linux
           # Fetch the latest Bicep CLI binary
-          curl -Lo bicep
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
       
       - name: List Now Installed Bicep Version
         shell: pwsh
@@ -54,6 +54,30 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Validate templates
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter '*.bicep' -Exclude '.\omfra-as-code\bicep\CRML\*','callModuleFromACR.example.bicep','orchHubSpoke.bicep', '' | ForEach-Object {
+            Write-Information "==> Attempting Bicep Deploy For File: $_" -InformationAction Continue
+            $bicepTemplate = $_.FullName
+            $parametersDirectory = "$_.DirectoryName\parameters"
+            Get-ChildItem -Path $parametersDirectory -Recurse -Filter '*.bicepparam' -Exclude *.sample.*.bicepparam | ForEach-Object {
+              Write-Information "==> Attempting Bicep Validate For File: $bicepTemplate | Paramters: $_" -InformationAction Continue
+              $bicepParameters = $_.FullName
+              $bicepOutput = az deployment sub validate --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
+              if ($LastExitCode -ne 0)
+              {
+                foreach ($item in $bicepOutput) {
+                  $output += "$($item) `r`n"
+                }
+              }
+              Else
+              {
+                echo "Bicep Build Successful for File: $bicepTemplate"
+              }
+            }
+          }
+
       - name: Deploy all Bicep templates
         shell: pwsh
         run: |
@@ -64,7 +88,7 @@ jobs:
             Get-ChildItem -Path $parametersDirectory -Recurse -Filter '*.bicepparam' -Exclude *.sample.*.bicepparam | ForEach-Object {
               Write-Information "==> Attempting Bicep Deploy For File: $bicepTemplate | Paramters: $_" -InformationAction Continue
               $bicepParameters = $_.FullName
-              $bicepOutput = az deployment sub --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
+              $bicepOutput = az deployment sub create --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
               if ($LastExitCode -ne 0)
               {
                 foreach ($item in $bicepOutput) {
