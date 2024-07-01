@@ -37,7 +37,7 @@ function Deploy-BicepTemplate {
       $bicepOutput = @()
       $command = "az deployment $scope $subcmd --location $Location --template-file $bicepTemplate --parameters @$bicepParameters 2>&1"
       # $bicepOutput = az deployment sub create --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
-      $bicepOutput = Invoke-Expression $command
+      $bicepOutput = Invoke-Command $command
       if ($LastExitCode -ne 0)
       {
         foreach ($item in $bicepOutput) {
