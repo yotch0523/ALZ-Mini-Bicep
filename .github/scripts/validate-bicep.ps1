@@ -8,6 +8,7 @@ ForEach-Object {
   ForEach-Object {
     Write-Information "==> Attempting Bicep Deploy For File: $bicepTemplate | Paramters: $_" -InformationAction Continue
     $bicepParameters = $_.FullName
+    $bicepOutput = @()
     $bicepOutput = az deployment sub validate --template-file $bicepTemplate --parameters @$bicepParameters 2>&1
     if ($LastExitCode -ne 0)
     {
@@ -17,7 +18,11 @@ ForEach-Object {
     }
     Else
     {
-      Write-Host "Bicep Build Successful for File: $bicepTemplate"
+      Write-Host "Bicep Validate Successful for File: $bicepTemplate"
+    }
+
+    if ($output.length -gt 0) {
+      throw $output
     }
   }
 }
