@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - ".github/workflows/deploy.yml"
-      - ".github/scripts/*"
       - "**.bicep"
       - "**.bicepparam"
       - "!*.sample.*.bicepparam"
@@ -56,12 +55,57 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Validate templates
-        shell: pwsh
-        run: |
-          ./.github/scripts/validate-bicep.ps1
+      - name: Deploy connectivity resource groups
+        id: deploy_connectivity_rg
+        uses: azure/arm-deploy@v2
+        with:
+          scope: subscription
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
+          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Connectivity-RG.all.bicepparam
+          deploymentName: deploy_Connectivity_RG
+          failOnStdErr: false
+      
+      - name: Deploy identity resource groups
+        id: deploy_identity_rg
+        uses: azure/arm-deploy@v2
+        with:
+          scope: subscription
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
+          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Identity-RG.all.bicepparam
+          deploymentName: deploy_Identity_RG
+          failOnStdErr: false
 
-      - name: Deploy all Bicep templates
-        shell: pwsh
-        run: |
-          ./.github/scripts/deploy-bicep.ps1
+      - name: Deploy LandingZone01 resource groups
+        id: deploy_landingzone01_rg
+        uses: azure/arm-deploy@v2
+        with:
+          scope: subscription
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
+          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/LandingZone01-RG.all.bicepparam
+          deploymentName: deploy_LandingZone01_RG
+          failOnStdErr: false
+      
+      - name: Deploy Management resource groups
+        id: deploy_management_rg
+        uses: azure/arm-deploy@v2
+        with:
+          scope: subscription
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
+          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Management-RG.all.bicepparam
+          deploymentName: deploy_Management_RG
+          failOnStdErr: false
+      
+      - name: Deploy Management resource groups
+        id: deploy_hub_networking
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: Connectivity-RG
+          template: infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
+          parameters: infra-as-code/bicep/modules/hubNetworking/parameters/hubNetworking.all.bicepparam
+          deploymentName: deploy_hub_networking
+          failOnStdErr: false
