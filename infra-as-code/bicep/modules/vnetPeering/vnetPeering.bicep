@@ -26,7 +26,7 @@ param parUseRemoteGateways bool = false
 param parTelemetryOptOut bool = false
 
 @sys.description('Virtual Network ID of Virtual Network destination.')
-var varDestinationVirtualNetworkId = resourceId('Microsoft.Network/virtualNetworks', parDestinationVirtualNetworkResourceGroupName, parDestinationVirtualNetworkName)
+var varDestinationVirtualNetworkId = resourceId(parDestinationVirtualNetworkResourceGroupName, 'Microsoft.Network/virtualNetworks', parDestinationVirtualNetworkName)
 
 // Customer Usage Attribution Id
 var varCuaId = uniqueString(parSourceVirtualNetworkName, '-', parDestinationVirtualNetworkName)
