@@ -43,13 +43,6 @@ jobs:
           # From https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#linux
           # Fetch the latest Bicep CLI binary
           curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
-          # Mark it as executable
-          chmod +x ./bicep
-          # Add bicep to your PATH (requires admin)
-          sudo mv ./bicep /usr/local/bin/bicep
-          # Verify you can now access the 'bicep' command
-          bicep --help
-          # Done!
 
       - name: List Now Installed Bicep Version
         shell: pwsh
@@ -116,16 +109,16 @@ jobs:
           failOnStdErr: false
           deploymentMode: Validate
       
-      - name: Deploy Management resource groups
+      - name: Deploy hub networking
         id: deploy_hub_networking
         uses: azure/arm-deploy@v2
         with:
           scope: resourcegroup
-          resourceGroupName: Connectivity-RG
+          resourceGroupName: ALZ-Connectivity-RG
           region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
           parameters: infra-as-code/bicep/modules/hubNetworking/parameters/hubNetworking.all.bicepparam
-          deploymentName: deploy_hub_networking
+          deploymentName: deploy_Hub_Networking
           failOnStdErr: false
           deploymentMode: Validate
           

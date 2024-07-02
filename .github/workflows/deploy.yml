@@ -106,14 +106,14 @@ jobs:
           deploymentName: deploy_Management_RG
           failOnStdErr: false
       
-      - name: Deploy Management resource groups
+      - name: Deploy hub networking
         id: deploy_hub_networking
         uses: azure/arm-deploy@v2
         with:
           scope: resourcegroup
-          resourceGroupName: Connectivity-RG
+          resourceGroupName: ALZ-Connectivity-RG
           region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
           parameters: infra-as-code/bicep/modules/hubNetworking/parameters/hubNetworking.all.bicepparam
-          deploymentName: deploy_hub_networking
+          deploymentName: deploy_Hub_Networking
           failOnStdErr: false
