@@ -17,6 +17,9 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  AZURE_DEPLOYMENT_REGION: 'japaneast'
+
 jobs:
   validate:
     name: Validate Bicep templates
@@ -67,6 +70,7 @@ jobs:
         with:
           scope: subscription
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
           parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Connectivity-RG.all.bicepparam
           deploymentName: deploy_Connectivity_RG
@@ -79,6 +83,7 @@ jobs:
         with:
           scope: subscription
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
           parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Identity-RG.all.bicepparam
           deploymentName: deploy_Identity_RG
@@ -91,6 +96,7 @@ jobs:
         with:
           scope: subscription
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
           parameters: infra-as-code/bicep/modules/resourceGroup/parameters/LandingZone01-RG.all.bicepparam
           deploymentName: deploy_LandingZone01_RG
@@ -103,6 +109,7 @@ jobs:
         with:
           scope: subscription
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
           parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Management-RG.all.bicepparam
           deploymentName: deploy_Management_RG
@@ -115,6 +122,7 @@ jobs:
         with:
           scope: resourcegroup
           resourceGroupName: Connectivity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
           parameters: infra-as-code/bicep/modules/hubNetworking/parameters/hubNetworking.all.bicepparam
           deploymentName: deploy_hub_networking
