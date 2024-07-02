@@ -121,6 +121,32 @@ jobs:
           deploymentName: deploy_Hub_Networking
           failOnStdErr: false
           deploymentMode: Validate
+
+      - name: Deploy Identity spoke networking
+        id: deploy_identity_spoke_networking
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Identity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
+          parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/Identity_spokeNetworking.all.bicepparam
+          deploymentName: deploy_Identity_Spoke_Networking
+          failOnStdErr: false
+          deploymentMode: Validate
+
+      - name: Deploy LandingZone01 spoke networking
+        id: deploy_landingzone01_spoke_networking
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Identity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
+          parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/LandingZone01_spokeNetworking.all.bicepparam
+          deploymentName: deploy_LandingZone01_Spoke_Networking
+          failOnStdErr: false
+          deploymentMode: Validate
           
 
   azure_waf:
