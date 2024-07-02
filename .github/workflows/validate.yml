@@ -1,4 +1,4 @@
-name: Unit Tests - Bicep Files and Modules
+name: Validation - Bicep Files and Modules
 
 on:
   pull_request:
