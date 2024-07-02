@@ -141,3 +141,51 @@ jobs:
           parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/LandingZone01_spokeNetworking.all.bicepparam
           deploymentName: deploy_LandingZone01_Spoke_Networking
           failOnStdErr: false
+
+      - name: Deploy Connectivity-Identity peering
+        id: deploy_connectivity_identity_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Connectivity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Connectivity-Identity_vnetPeering.all.bicepparam
+          deploymentName: deploy_Connectivity_Identity_Peering
+          failOnStdErr: false
+      
+      - name: Deploy Connectivity-LandingZone01 peering
+        id: deploy_connectivity_landingzone01_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Connectivity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Connectivity-LandingZone01_vnetPeering.all.bicepparam
+          deploymentName: deploy_Connectivity_LandingZone01_Peering
+          failOnStdErr: false
+
+      - name: Deploy Identity-Connectivity peering
+        id: deploy_identity_connectivity_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Identity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Identity-Connectivity_vnetPeering.all.bicepparam
+          deploymentName: deploy_Identity_Connectivity_Peering
+          failOnStdErr: false
+
+      - name: Deploy LandingZone01-Connectivity peering
+        id: deploy_landingzone01_connectivity_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-LandingZone01-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/LandingZone01-Connectivity_vnetPeering.all.bicepparam
+          deploymentName: deploy_LandingZone01_Connectivity_Peering
+          failOnStdErr: false

@@ -115,7 +115,7 @@ param parResourceLockConfig lockType = {
 @sys.description('Set Parameter to true to Opt-out of deployment telemetry.')
 param parTelemetryOptOut bool = false
 
-var parVirtualNetworkIdToLink = resourceId('Microsoft.Network/virtualNetworks', parVirtualNetworkNameToLink)
+var varVirtualNetworkIdToLink = resourceId('Microsoft.Network/virtualNetworks', parVirtualNetworkNameToLink)
 
 var varAzBackupGeoCodes = {
   australiacentral: 'acl'
@@ -211,22 +211,22 @@ resource resPrivateDnsZonesLock 'Microsoft.Authorization/locks@2020-05-01' = [fo
   }
 }]
 
-resource resVirtualNetworkLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = [for privateDnsZoneName in varPrivateDnsZonesMerge: if (!empty(parVirtualNetworkIdToLink)) {
-  name: '${privateDnsZoneName}/${take('link-${uniqueString(parVirtualNetworkIdToLink)}', 80)}'
+resource resVirtualNetworkLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = [for privateDnsZoneName in varPrivateDnsZonesMerge: if (!empty(varVirtualNetworkIdToLink)) {
+  name: '${privateDnsZoneName}/${take('link-${uniqueString(varVirtualNetworkIdToLink)}', 80)}'
   location: 'global'
   properties: {
     registrationEnabled: false
     virtualNetwork: {
-      id: parVirtualNetworkIdToLink
+      id: varVirtualNetworkIdToLink
     }
   }
   dependsOn: resPrivateDnsZones
   tags: parTags
 }]
 
-resource resVirtualNetworkLinkLock 'Microsoft.Authorization/locks@2020-05-01' = [for (privateDnsZone, index) in varPrivateDnsZonesMerge: if (!empty(parVirtualNetworkIdToLink) && !empty(parResourceLockConfig ?? {}) && parResourceLockConfig.kind != 'None') {
+resource resVirtualNetworkLinkLock 'Microsoft.Authorization/locks@2020-05-01' = [for (privateDnsZone, index) in varPrivateDnsZonesMerge: if (!empty(varVirtualNetworkIdToLink) && !empty(parResourceLockConfig ?? {}) && parResourceLockConfig.kind != 'None') {
   scope: resVirtualNetworkLink[index]
-  name: parResourceLockConfig.?name ?? 'link-${uniqueString(parVirtualNetworkIdToLink)}-${privateDnsZone}-lock'
+  name: parResourceLockConfig.?name ?? 'link-${uniqueString(varVirtualNetworkIdToLink)}-${privateDnsZone}-lock'
   properties: {
     level: parResourceLockConfig.kind
     notes: parResourceLockConfig.?notes ?? ''
@@ -248,7 +248,7 @@ resource resVirtualNetworkLinkFailover 'Microsoft.Network/privateDnsZones/virtua
 
 resource resVirtualNetworkLinkFailoverLock 'Microsoft.Authorization/locks@2020-05-01' = [for (privateDnsZone, index) in varPrivateDnsZonesMerge: if (!empty(parVirtualNetworkIdToLinkFailover) && !empty(parResourceLockConfig ?? {}) && parResourceLockConfig.kind != 'None') {
   scope: resVirtualNetworkLinkFailover[index]
-  name: parResourceLockConfig.?name ?? 'failbacklink-${uniqueString(parVirtualNetworkIdToLink)}-${privateDnsZone}-lock'
+  name: parResourceLockConfig.?name ?? 'failbacklink-${uniqueString(varVirtualNetworkIdToLink)}-${privateDnsZone}-lock'
   properties: {
     level: parResourceLockConfig.kind
     notes: parResourceLockConfig.?notes ?? ''
