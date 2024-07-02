@@ -4,6 +4,9 @@ metadata description = 'Module used to set up Virtual Network Peering between Vi
 @sys.description('Name of source Virtual Network we are peering.')
 param parSourceVirtualNetworkName string
 
+@sys.description('Resource Group Name of Virtual Network destination.')
+param parDestinationVirtualNetworkResourceGroupName string
+
 @sys.description('Virtual Network Name of Virtual Network destination.')
 param parDestinationVirtualNetworkName string
 
@@ -23,7 +26,7 @@ param parUseRemoteGateways bool = false
 param parTelemetryOptOut bool = false
 
 @sys.description('Virtual Network ID of Virtual Network destination.')
-var varDestinationVirtualNetworkId = resourceId('Microsoft.Network/virtualNetworks', parDestinationVirtualNetworkName)
+var varDestinationVirtualNetworkId = resourceId('Microsoft.Network/virtualNetworks', parDestinationVirtualNetworkResourceGroupName, parDestinationVirtualNetworkName)
 
 // Customer Usage Attribution Id
 var varCuaId = uniqueString(parSourceVirtualNetworkName, '-', parDestinationVirtualNetworkName)
