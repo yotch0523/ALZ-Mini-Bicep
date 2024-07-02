@@ -72,10 +72,6 @@ function Deploy-BicepTemplate {
             $output += "$($item) `r`n"
           }
         }
-        Else
-        {
-          Write-Host "Bicep deploy Successful for File: $bicepTemplate"
-        }
 
         if ($output.length -gt 0) {
           throw $output
@@ -94,9 +90,7 @@ function Deploy-BicepTemplate {
       }
     }
 
-    $results = $jobs | ForEach-Object { Receive-Job -Job $_ }
-
     $jobs | ForEach-Object { Remove-Job -Job $_ }
-    $results
+    Write-Host "Bicep deploy Successful for File: $bicepTemplate"
   }
 }
