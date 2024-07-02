@@ -140,7 +140,7 @@ jobs:
         uses: azure/arm-deploy@v2
         with:
           scope: resourcegroup
-          resourceGroupName: ALZ-Identity-RG
+          resourceGroupName: ALZ-LandingZone01-RG
           region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
           parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/LandingZone01_spokeNetworking.all.bicepparam
