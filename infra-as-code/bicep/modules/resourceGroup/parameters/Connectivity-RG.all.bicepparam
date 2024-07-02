@@ -8,6 +8,7 @@ param parResourceLockConfig = {
   notes: 'This lock was created by the ALZ Bicep Resource Group Module.'
 }
 param parTags = {
-  environment: 'test'
+  Environment: 'Test'
+  Workload: 'Connectivity'
 }
 param parTelemetryOptOut = false
