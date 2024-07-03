@@ -346,3 +346,18 @@ jobs:
           modules: PSRule.Rules.Azure
           baseline: Azure.Preview
         continue-on-error: true
+
+  all-jobs-success:
+    needs: [
+      validate-resource-groups,
+      validate-logging,
+      validate-networkings,
+      validate-peerings,
+      azure_waf
+    ]
+    name: All jobs are successful
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: All jobs are successful
+        run: echo "All jobs are successful"
