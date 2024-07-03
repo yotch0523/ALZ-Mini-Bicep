@@ -21,8 +21,8 @@ env:
   AZURE_DEPLOYMENT_REGION: 'japaneast'
 
 jobs:
-  deploy:
-    name: Deploy Infrastructure
+  deploy-resource-groups:
+    name: Deploy Resource Groups
     runs-on: ubuntu-latest
 
     steps:
@@ -105,7 +105,95 @@ jobs:
           parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Management-RG.all.bicepparam
           deploymentName: deploy_Management_RG
           failOnStdErr: false
+
+  deploy-logging:
+    needs: deploy-resource-groups
+    name: Deploy logging
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List Currently Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Currently installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Install latest version of Bicep
+        shell: sh
+        run: |
+          # From https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#linux
+          # Fetch the latest Bicep CLI binary
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
       
+      - name: List Now Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Now installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Deploy Management Logging resources
+        id: deploy_management_logging
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Management-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/logging/logging.bicep
+          parameters: infra-as-code/bicep/modules/logging/parameters/Management_logging.all.bicepparam
+          deploymentName: deploy_Management_Logging
+          failOnStdErr: false
+
+  deploy-networkings:
+    needs: deploy-resource-groups
+    name: Deploy Networkings
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List Currently Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Currently installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Install latest version of Bicep
+        shell: sh
+        run: |
+          # From https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#linux
+          # Fetch the latest Bicep CLI binary
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+      
+      - name: List Now Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Now installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Deploy hub networking
         id: deploy_hub_networking
         uses: azure/arm-deploy@v2
@@ -141,6 +229,44 @@ jobs:
           parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/LandingZone01_spokeNetworking.all.bicepparam
           deploymentName: deploy_LandingZone01_Spoke_Networking
           failOnStdErr: false
+
+  deploy-peerings:
+    needs: deploy-networkings
+    name: Deploy Peerings
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List Currently Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Currently installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Install latest version of Bicep
+        shell: sh
+        run: |
+          # From https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#linux
+          # Fetch the latest Bicep CLI binary
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+      
+      - name: List Now Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Now installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Connectivity-Identity peering
         id: deploy_connectivity_identity_peering
@@ -188,16 +314,4 @@ jobs:
           template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
           parameters: infra-as-code/bicep/modules/vnetPeering/parameters/LandingZone01-Connectivity_vnetPeering.all.bicepparam
           deploymentName: deploy_LandingZone01_Connectivity_Peering
-          failOnStdErr: false
-
-      - name: Deploy Management Logging resources
-        id: deploy_management_logging
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-Management-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/logging/logging.bicep
-          parameters: infra-as-code/bicep/modules/logging/parameters/Management_logging.all.bicepparam
-          deploymentName: deploy_Management_Logging
           failOnStdErr: false
