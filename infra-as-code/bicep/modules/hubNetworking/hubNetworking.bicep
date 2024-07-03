@@ -447,7 +447,7 @@ var varGwConfig = [
 ]
 
 // Customer Usage Attribution Id Telemetry '2686e846-5fdc-4d4f-b533-16dcb09d6e6c'
-var varCuaid = uniqueString(parCompanyPrefix, parHubNetworkName)
+var varCuaid = '2686e846-5fdc-4d4f-b533-16dcb09d6e6c'
 
 // ZTN Telemetry '3ab23b1e-c5c5-42d4-b163-1402384ba2db'
 var varZtnP1CuaId = uniqueString(parCompanyPrefix, parHubNetworkName, 'ztn')

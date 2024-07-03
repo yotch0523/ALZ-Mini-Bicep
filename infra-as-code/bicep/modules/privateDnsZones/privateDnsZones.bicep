@@ -12,9 +12,6 @@ type lockType = {
   notes: string?
 }
 
-@sys.description('Project prefix represents, for example, customer name, project name, organization name, or so on.')
-param parProjectPrefix string = 'alz'
-
 @sys.description('The Azure Region to deploy the resources into.')
 param parLocation string = resourceGroup().location
 
@@ -194,7 +191,7 @@ var varAzBackupGeoCodes = {
 var varPrivateDnsZonesMerge = parPrivateDnsZoneAutoMergeAzureBackupZone && contains(varAzBackupGeoCodes, parLocation) ? union(parPrivateDnsZones, [ 'privatelink.${varAzBackupGeoCodes[toLower(parLocation)]}.backup.windowsazure.com' ]) : parPrivateDnsZones
 
 // Customer Usage Attribution Id
-var varCuaid = uniqueString(parProjectPrefix)
+var varCuaid = '981733dd-3195-4fda-a4ee-605ab959edb6'
 
 resource resPrivateDnsZones 'Microsoft.Network/privateDnsZones@2020-06-01' = [for privateDnsZone in varPrivateDnsZonesMerge: {
   name: privateDnsZone
