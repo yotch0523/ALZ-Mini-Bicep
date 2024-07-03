@@ -315,3 +315,53 @@ jobs:
           parameters: infra-as-code/bicep/modules/vnetPeering/parameters/LandingZone01-Connectivity_vnetPeering.all.bicepparam
           deploymentName: deploy_LandingZone01_Connectivity_Peering
           failOnStdErr: false
+
+  deploy-diagnostics-settings:
+    needs: deploy-logging
+    name: Deploy Bicep templates of diagnostics settings
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List Currently Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Currently installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Install latest version of Bicep
+        shell: sh
+        run: |
+          # From https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#linux
+          # Fetch the latest Bicep CLI binary
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+
+      - name: List Now Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Now installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Diagnostics Settings resources
+        id: deploy_diagnostics_settings
+        uses: azure/arm-deploy@v2
+        with:
+          scope: managementgroup
+          managementGroupId: ${{ secrets.AZURE_ROOT_MANAGEMENT_GROUP_ID }}
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/mgDiagSettings/mgDiagSettings.bicep
+          parameters: infra-as-code/bicep/modules/mgDiagSettings/parameters/mgDiagSettings.all.bicepparam
+          deploymentName: deploy_Diagnostics_Settings
+          failOnStdErr: false
