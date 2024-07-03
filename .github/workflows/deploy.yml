@@ -21,7 +21,180 @@ env:
   AZURE_DEPLOYMENT_REGION: 'japaneast'
 
 jobs:
-  deploy:
+  deploy-resource-group-templates:
+    name: Deploy Bicep templates
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        resource-group: [
+          Connectivity-RG,
+          Identity-RG,
+          LandingZone01-RG,
+          Management-RG
+        ]
+    steps:
+      - uses: actions/checkout@main
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List Currently Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Currently installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Install latest version of Bicep
+        shell: sh
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+
+      - name: List Now Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Now installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy ${{ matrix.resource-group }} resource groups
+        id: validate_identity_rg
+        uses: azure/arm-deploy@v2
+        with:
+          scope: subscription
+          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
+          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/${{ matrix.resource-group }}.all.bicepparam
+          deploymentName: validate_Identity_RG
+          failOnStdErr: false
+
+  deploy-networking-templates:
+    needs: deploy-resource-group-templates
+    name: Deploy Bicep templates of networking resources
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List Currently Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Currently installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Install latest version of Bicep
+        shell: sh
+        run: |
+          curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+
+      - name: List Now Installed Bicep Version
+        shell: pwsh
+        run: |
+          $bicepVersion = bicep --version
+          Write-Information "=====> Now installed Bicep version is: $bicepVersion <=====" -InformationAction Continue
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy hub networking
+        id: deploy_hub_networking
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Connectivity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
+          parameters: infra-as-code/bicep/modules/hubNetworking/parameters/hubNetworking.all.bicepparam
+          deploymentName: Deploy_Hub_Networking
+          failOnStdErr: false
+
+      - name: Deploy Identity spoke networking
+        id: validate_identity_spoke_networking
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Identity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
+          parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/Identity_spokeNetworking.all.bicepparam
+          deploymentName: Deploy_Identity_Spoke_Networking
+          failOnStdErr: false
+
+      - name: Deploy LandingZone01 spoke networking
+        id: Deploy_landingzone01_spoke_networking
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-LandingZone01-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
+          parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/LandingZone01_spokeNetworking.all.bicepparam
+          deploymentName: Deploy_LandingZone01_Spoke_Networking
+          failOnStdErr: false
+
+      - name: Deploy Connectivity-Identity peering
+        id: deploy_connectivity_identity_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Connectivity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Connectivity-Identity_vnetPeering.all.bicepparam
+          deploymentName: Deploy_Connectivity_Identity_Peering
+          failOnStdErr: false
+      
+      - name: Deploy Connectivity-LandingZone01 peering
+        id: deploy_connectivity_landingzone01_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Connectivity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Connectivity-LandingZone01_vnetPeering.all.bicepparam
+          deploymentName: Deploy_Connectivity_LandingZone01_Peering
+          failOnStdErr: false
+
+      - name: Deploy Identity-Connectivity peering
+        id: deploy_identity_connectivity_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Identity-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Identity-Connectivity_vnetPeering.all.bicepparam
+          deploymentName: Deploy_Identity_Connectivity_Peering
+          failOnStdErr: false
+
+      - name: Deploy LandingZone01-Connectivity peering
+        id: deploy_landingzone01_connectivity_peering
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-LandingZone01-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
+          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/LandingZone01-Connectivity_vnetPeering.all.bicepparam
+          deploymentName: Deploy_LandingZone01_Connectivity_Peering
+          failOnStdErr: false
+
+  deploy-others-templates:
+    needs: deploy-networking-templates
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
 
@@ -41,8 +214,6 @@ jobs:
       - name: Install latest version of Bicep
         shell: sh
         run: |
-          # From https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/install#linux
-          # Fetch the latest Bicep CLI binary
           curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
       
       - name: List Now Installed Bicep Version
@@ -58,138 +229,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy connectivity resource groups
-        id: deploy_connectivity_rg
-        uses: azure/arm-deploy@v2
-        with:
-          scope: subscription
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
-          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Connectivity-RG.all.bicepparam
-          deploymentName: deploy_Connectivity_RG
-          failOnStdErr: false
-      
-      - name: Deploy identity resource groups
-        id: deploy_identity_rg
-        uses: azure/arm-deploy@v2
-        with:
-          scope: subscription
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
-          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Identity-RG.all.bicepparam
-          deploymentName: deploy_Identity_RG
-          failOnStdErr: false
-
-      - name: Deploy LandingZone01 resource groups
-        id: deploy_landingzone01_rg
-        uses: azure/arm-deploy@v2
-        with:
-          scope: subscription
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
-          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/LandingZone01-RG.all.bicepparam
-          deploymentName: deploy_LandingZone01_RG
-          failOnStdErr: false
-      
-      - name: Deploy Management resource groups
-        id: deploy_management_rg
-        uses: azure/arm-deploy@v2
-        with:
-          scope: subscription
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/resourceGroup/resourceGroup.bicep
-          parameters: infra-as-code/bicep/modules/resourceGroup/parameters/Management-RG.all.bicepparam
-          deploymentName: deploy_Management_RG
-          failOnStdErr: false
-      
-      - name: Deploy hub networking
-        id: deploy_hub_networking
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-Connectivity-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/hubNetworking/hubNetworking.bicep
-          parameters: infra-as-code/bicep/modules/hubNetworking/parameters/hubNetworking.all.bicepparam
-          deploymentName: deploy_Hub_Networking
-          failOnStdErr: false
-
-      - name: Deploy Identity spoke networking
-        id: deploy_identity_spoke_networking
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-Identity-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
-          parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/Identity_spokeNetworking.all.bicepparam
-          deploymentName: deploy_Identity_Spoke_Networking
-          failOnStdErr: false
-
-      - name: Deploy LandingZone01 spoke networking
-        id: deploy_landingzone01_spoke_networking
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-LandingZone01-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/spokeNetworking/spokeNetworking.bicep
-          parameters: infra-as-code/bicep/modules/spokeNetworking/parameters/LandingZone01_spokeNetworking.all.bicepparam
-          deploymentName: deploy_LandingZone01_Spoke_Networking
-          failOnStdErr: false
-
-      - name: Deploy Connectivity-Identity peering
-        id: deploy_connectivity_identity_peering
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-Connectivity-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
-          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Connectivity-Identity_vnetPeering.all.bicepparam
-          deploymentName: deploy_Connectivity_Identity_Peering
-          failOnStdErr: false
-      
-      - name: Deploy Connectivity-LandingZone01 peering
-        id: deploy_connectivity_landingzone01_peering
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-Connectivity-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
-          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Connectivity-LandingZone01_vnetPeering.all.bicepparam
-          deploymentName: deploy_Connectivity_LandingZone01_Peering
-          failOnStdErr: false
-
-      - name: Deploy Identity-Connectivity peering
-        id: deploy_identity_connectivity_peering
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-Identity-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
-          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/Identity-Connectivity_vnetPeering.all.bicepparam
-          deploymentName: deploy_Identity_Connectivity_Peering
-          failOnStdErr: false
-
-      - name: Deploy LandingZone01-Connectivity peering
-        id: deploy_landingzone01_connectivity_peering
-        uses: azure/arm-deploy@v2
-        with:
-          scope: resourcegroup
-          resourceGroupName: ALZ-LandingZone01-RG
-          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
-          template: infra-as-code/bicep/modules/vnetPeering/vnetPeering.bicep
-          parameters: infra-as-code/bicep/modules/vnetPeering/parameters/LandingZone01-Connectivity_vnetPeering.all.bicepparam
-          deploymentName: deploy_LandingZone01_Connectivity_Peering
-          failOnStdErr: false
-
       - name: Deploy Management Logging resources
         id: deploy_management_logging
         uses: azure/arm-deploy@v2
@@ -199,5 +238,5 @@ jobs:
           region: ${{ env.AZURE_DEPLOYMENT_REGION }}
           template: infra-as-code/bicep/modules/logging/logging.bicep
           parameters: infra-as-code/bicep/modules/logging/parameters/Management_logging.all.bicepparam
-          deploymentName: deploy_Management_Logging
+          deploymentName: Deploy_Management_Logging
           failOnStdErr: false
