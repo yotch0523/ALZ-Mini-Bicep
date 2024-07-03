@@ -199,6 +199,19 @@ jobs:
           deploymentName: deploy_LandingZone01_Connectivity_Peering
           failOnStdErr: false
           deploymentMode: Validate
+      
+      - name: Deploy Management Logging resources
+        id: deploy_management_logging
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ALZ-Management-RG
+          region: ${{ env.AZURE_DEPLOYMENT_REGION }}
+          template: infra-as-code/bicep/modules/logging/logging.bicep
+          parameters: infra-as-code/bicep/modules/logging/parameters/Management_logging.all.bicepparam
+          deploymentName: deploy_Management_Logging
+          failOnStdErr: false
+          deploymentMode: Validate
           
 
   azure_waf:
