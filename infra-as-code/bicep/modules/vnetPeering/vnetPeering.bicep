@@ -29,7 +29,7 @@ param parTelemetryOptOut bool = false
 var varDestinationVirtualNetworkId = resourceId(parDestinationVirtualNetworkResourceGroupName, 'Microsoft.Network/virtualNetworks', parDestinationVirtualNetworkName)
 
 // Customer Usage Attribution Id
-var varCuaId = uniqueString(parSourceVirtualNetworkName, '-', parDestinationVirtualNetworkName)
+var varCuaId = 'ab8e3b12-b0fa-40aa-8630-e3f7699e2142'
 
 resource resVirtualNetworkPeer 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2023-02-01' = {
   name: '${parSourceVirtualNetworkName}/${parSourceVirtualNetworkName}-${parDestinationVirtualNetworkName}'

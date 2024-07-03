@@ -1,6 +1,5 @@
 using '../resourceGroup.bicep'
 
-param parProjectPrefix = 'alz'
 param parLocation = 'japaneast'
 param parResourceGroupName = 'ALZ-Connectivity-RG'
 param parResourceLockConfig = {
